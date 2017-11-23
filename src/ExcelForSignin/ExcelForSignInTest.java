@@ -7,14 +7,19 @@ import java.awt.event.KeyEvent;
 import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
+import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
 
+import jxl.CellFeatures;
 import jxl.CellType;
 import jxl.Workbook;
+import jxl.format.CellFormat;
 import jxl.read.biff.BiffException;
 import jxl.write.DateTime;
 import jxl.write.Label;
@@ -117,6 +122,7 @@ public class ExcelForSignInTest {
 			SimpleDateFormat dfFor8 = new SimpleDateFormat("yyyy-MM-dd");
 
 			if(now.getDay() == 0){
+//			if(true){
 				WritableSheet sheet = book.createSheet(dfFor8.format(now).toString(), book.getNumberOfSheets()+1);
 				sheet.addCell(new Label(0, 0, "日期"));
 				sheet.addCell(new Label(1, 0, "上班打卡时间"));
@@ -124,6 +130,15 @@ public class ExcelForSignInTest {
 				sheet.addCell(new Label(3, 0, "缺勤时长"));
 				sheet.addCell(new Label(4, 0, "加班时长"));
 				sheet.addCell(new Label(5, 0, "单日总计"));
+				
+				//获取当月所有的日期列表
+				List <String> allMonthday =  getAllDaysMonthByDate(now);
+				int i = 1;
+				//初始化日期列表
+				for(String theDay:allMonthday){
+					sheet.addCell(new Label(0,i,theDay));
+					i++;
+				}
 			}
 			
 			WritableSheet sheet = book.getSheet(0);
@@ -170,8 +185,8 @@ public class ExcelForSignInTest {
 			// datecell.setCellFormat(wcfDF);
 			// }
 
-			book.write();
-			book.close();
+//			book.write();
+//			book.close();
 
 		} catch (BiffException e) {
 			// TODO Auto-generated catch block
@@ -184,10 +199,13 @@ public class ExcelForSignInTest {
 			e.printStackTrace();
 		} finally {
 			try {
-				if(book!= null){
+				if (book != null) {
 					book.write();
 					book.close();
 				}
+//				if (wb != null) {
+//					wb.close();
+//				}
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -197,6 +215,37 @@ public class ExcelForSignInTest {
 			}
 		}
 	}
+	
+	/**
+	 * 
+	 * 根据传入的日期获取所在月份所有日期
+	 * 
+	 * @param args
+	 */
+	public static List<String> getAllDaysMonthByDate(Date d){
+		List<String> lst = new ArrayList<String>();
+		SimpleDateFormat df = new SimpleDateFormat("yyyy/MM/dd");
+		Calendar calendar = Calendar.getInstance();
+		Date firstDay = new Date();
+		Date endDay = new Date();
+		calendar.setTime(d);
+		int dayIndex = calendar.get(Calendar.DAY_OF_MONTH);
+		calendar.add(calendar.DATE, 1-dayIndex);
+		firstDay = calendar.getTime();
+		calendar.setTime(d);
+		calendar.add(calendar.DATE,(-dayIndex));
+		calendar.add(Calendar.MONTH, 1);
+		endDay = calendar.getTime();
+		
+		while (!firstDay.after(endDay)) {
+			// System.out.println(sdf.format(date));
+			lst.add(df.format(firstDay));
+			calendar.setTime(firstDay);
+			calendar.add(Calendar.DATE, 1);
+			firstDay = calendar.getTime();
+		}
+		return lst;
+	} 
 
 	public static void main(String[] args) {
 		ExcelForSignInTest excle = new ExcelForSignInTest();
